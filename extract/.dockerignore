@@ -1,0 +1,9 @@
+.venv
+pages
+pages.zip
+*.png
+__pycache__
+*.pyc
+.DS_Store
+run.sh
+.dockerignore
