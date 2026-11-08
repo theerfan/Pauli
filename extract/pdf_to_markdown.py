@@ -166,6 +166,9 @@ def _token(font: str, ch: str) -> tuple[str, str]:
             return "math", _DELIM[code]
         return "math", ch
     if fam == "CMSY":
+        # Inline radicals are the CMSY glyph, which PyMuPDF already decoded as √.
+        if ch == "√":
+            return "math", r"\sqrt"
         if len(ch) == 1 and "A" <= ch <= "Z":
             return "math", rf"\mathcal{{{ch}}}"
         return "math", ch
@@ -259,13 +262,18 @@ def _span(glyphs: list[Glyph]) -> tuple[float, float, float, float]:
 
 
 def _join(glyphs: list[Glyph]) -> str:
+    """Glue glyphs in x-order. A real gap becomes a space; touching letters do not."""
     parts: list[str] = []
-    for g in glyphs:
+    prev: Glyph | None = None
+    for g in sorted(glyphs, key=lambda g: (g.x0, g.y0)):
         if g.kind == "space" or not g.text:
             continue
-        if parts and parts[-1][-1].isalnum() and (g.text[0].isalnum() or g.text.startswith("\\")):
+        command_then_letter = bool(parts and re.search(r"\\[a-zA-Z]+$", parts[-1]) and g.text[:1].isalpha())
+        letter_then_command = bool(parts and parts[-1][-1:].isalnum() and g.text.startswith("\\"))
+        if prev is not None and (g.x0 - prev.x1 > 1.3 or command_then_letter or letter_then_command):
             parts.append(" ")
         parts.append(g.text)
+        prev = g
     return "".join(parts)
 
 
@@ -389,12 +397,205 @@ def bind_overlays(glyphs: list[Glyph]) -> list[Glyph]:
     return out + [g for i, g in enumerate(glyphs) if i not in used]
 
 
+# Roman operator names. A following math argument is wrapped in parentheses.
+# English words (cosine, single, detail) are a longer letter run, so they stay.
+_FUNCS = {
+    "arcsin", "arccos", "arctan",
+    "sinh", "cosh", "tanh",
+    "sin", "cos", "tan", "sec", "csc", "cot",
+    "sinc", "log", "ln", "exp", "arg", "det",
+}
+_ARG_STOP = set("+−-=,;:?.!")
+
+
+def _func_cmd(name: str) -> str:
+    if name == "sinc":
+        return r"\operatorname{sinc}"
+    return "\\" + name
+
+
+def _skip_space(line: list[Glyph], index: int) -> int:
+    while index < len(line) and (line[index].kind == "space" or not line[index].text.strip()):
+        index += 1
+    return index
+
+
+def _balanced(line: list[Glyph], index: int) -> tuple[list[Glyph], int]:
+    """index points at an opening parenthesis. Return the group, including the fences."""
+    group = [line[index]]
+    depth = 1
+    index += 1
+    while index < len(line) and depth:
+        g = line[index]
+        if g.kind != "space" and g.text.strip():
+            if g.text == "(":
+                depth += 1
+            elif g.text == ")":
+                depth -= 1
+            group.append(g)
+        index += 1
+        if depth == 0:
+            break
+    return group, index
+
+
+def _argument(line: list[Glyph], index: int) -> tuple[list[Glyph], int]:
+    """The math that follows an operator. Parentheses keep what is inside them."""
+    index = _skip_space(line, index)
+    if index >= len(line):
+        return [], index
+    if line[index].text == "(":
+        return _balanced(line, index)
+    group: list[Glyph] = []
+    prev: Glyph | None = None
+    while index < len(line):
+        g = line[index]
+        if g.kind == "space" or not g.text.strip():
+            index += 1
+            continue
+        if prev is not None and g.x0 - prev.x1 > 8:
+            break
+        if g.kind == "text" and any(ch.isalpha() for ch in g.text):
+            break
+        # A math comma is the end of "cos 4πt,", not part of the argument.
+        if group and g.text in ",;:":
+            break
+        if group and g.kind == "text" and g.text in _ARG_STOP:
+            break
+        if not group and g.kind == "text" and g.text in "+−-":
+            group.append(g)
+            prev = g
+            index += 1
+            continue
+        if g.text == "(":
+            nested, index = _balanced(line, index)
+            group.extend(nested)
+            prev = nested[-1]
+            continue
+        if g.text == ")":
+            break
+        group.append(g)
+        prev = g
+        index += 1
+    return group, index
+
+
+def _arg_is_math(group: list[Glyph]) -> bool:
+    for g in group:
+        if g.kind == "math" or g.text.startswith("\\") or g.text in "([":
+            return True
+        if re.fullmatch(r"[0-9.]", g.text or ""):
+            return True
+    return False
+
+
+def _operators(line: list[Glyph]) -> list[Glyph]:
+    """Turn a roman cos/sin plus its argument into \\cos(...), \\sin(...)."""
+    line = sorted(line, key=lambda g: (g.x0, g.y0))
+    out: list[Glyph] = []
+    index = 0
+    while index < len(line):
+        g = line[index]
+        if g.kind != "text" or len(g.text) != 1 or not g.text.isalpha():
+            out.append(g)
+            index += 1
+            continue
+        if index > 0:
+            prev = line[index - 1]
+            if prev.kind == "text" and prev.text[:1].isalpha() and g.x0 - prev.x1 <= 1.5:
+                out.append(g)
+                index += 1
+                continue
+        chars = [g.text]
+        end = index + 1
+        last = g
+        while end < len(line):
+            nxt = line[end]
+            if not (nxt.kind == "text" and len(nxt.text) == 1 and nxt.text.isalpha()):
+                break
+            if nxt.x0 - last.x1 > 1.5 or abs(nxt.size - g.size) > 1.5:
+                break
+            chars.append(nxt.text)
+            last = nxt
+            end += 1
+        name = "".join(chars)
+        if name not in _FUNCS:
+            out.append(g)
+            index += 1
+            continue
+        cursor = end
+        sup: list[Glyph] = []
+        while cursor < len(line):
+            nxt = line[cursor]
+            if nxt.kind == "space" or not nxt.text.strip():
+                cursor += 1
+                continue
+            if nxt.size <= g.size * 0.85 and nxt.cy < g.cy - 0.7 and nxt.x0 <= last.x1 + 14:
+                sup.append(nxt)
+                cursor += 1
+                continue
+            break
+        arg, after = _argument(line, cursor)
+        if not _arg_is_math(arg):
+            out.append(g)
+            index += 1
+            continue
+        body = _join(arg)
+        if not body.startswith("("):
+            body = "(" + body + ")"
+        text = _func_cmd(name)
+        if sup:
+            text += "^{" + _join(sup) + "}"
+        text += body
+        x1 = arg[-1].x1
+        out.append(Glyph(g.x0, g.y0, x1, max(g.y1, arg[-1].y1), g.size, text, "math", g.line))
+        index = after
+    return out
+
+
+def _narrow_fraction(glyphs: list[Glyph], above: list[int], below: list[int]) -> bool:
+    """A bar only a few points wide is a one-symbol fraction, such as 1/2 or 1/ν."""
+    if not above or not below or len(above) + len(below) > 6:
+        return False
+    for i in above + below:
+        g = glyphs[i]
+        if g.size >= 11.5 or len(g.text) > 4:
+            return False
+    return True
+
+
+def _baseline(glyphs: list[Glyph], ids: list[int]) -> tuple[float, float]:
+    """Sit on the line that owns the radical or fraction, not on the line above it."""
+    anchor = _line_anchor(glyphs, ids)
+    hosts = [g for g in glyphs if g.line == anchor and g.kind != "space" and g.size >= 9.5 and g.text != r"\sqrt"]
+    if hosts:
+        ys = sorted(g.y0 for g in hosts)
+        y0 = ys[len(ys) // 2]
+        return y0, y0 + 11
+    members = [glyphs[i] for i in ids if glyphs[i].text != r"\sqrt"]
+    host = members[0] if members else glyphs[ids[0]]
+    return host.y0, host.y1
+
+
+def _line_anchor(glyphs: list[Glyph], ids: list[int]) -> int:
+    """Put a rebuilt radical or fraction on the line that holds the rest of the formula."""
+    lines = {glyphs[i].line for i in ids}
+    if len(lines) == 1:
+        return next(iter(lines))
+    counts = {line: 0 for line in lines}
+    for g in glyphs:
+        if g.line in counts:
+            counts[g.line] += 1
+    return max(counts, key=lambda line: counts[line])
+
+
 def bind_fractions(glyphs: list[Glyph], rules: list[Rule]) -> list[Glyph]:
     consumed: set[int] = set()
     made: list[Glyph] = []
     for rule in sorted(rules, key=lambda r: r.w):
         # Header rules are page-wide. Footnote rules are short and sit in the left margin.
-        if rule.w < 7 or rule.w > 220 or rule.y0 < 50:
+        # A vinculum over a single digit is only about 5pt, and 1/2 is about 4pt.
+        if rule.w < 3.2 or rule.w > 220 or rule.y0 < 50:
             continue
         if rule.x0 < 80 and rule.w < 30:
             continue
@@ -402,41 +603,53 @@ def bind_fractions(glyphs: list[Glyph], rules: list[Rule]) -> list[Glyph]:
         for i, g in enumerate(glyphs):
             if i in consumed or g.kind == "space":
                 continue
-            if not (rule.x0 - 2 <= g.cx <= rule.x1 + 2):
+            # A following letter can sit a point past the bar. Two points of slop pulls it in.
+            if not (rule.x0 - 0.6 <= g.cx <= rule.x1 + 0.6):
                 continue
-            if rule.cy - 16 <= g.cy < rule.cy - 0.4:
+            # A one-symbol bar sits under a digit or a math symbol, not under the next word.
+            if rule.w < 7 and g.kind == "text" and any(ch.isalpha() for ch in g.text):
+                continue
+            # A short bar is a one-symbol fraction. The previous line is about 13pt away
+            # and must not be read as its numerator.
+            above_lim = 9 if rule.w < 7 else 16
+            below_lim = 9 if rule.w < 7 else 18
+            if rule.cy - above_lim <= g.cy < rule.cy - 0.4:
                 above.append(i)
-            elif rule.cy + 0.4 < g.cy <= rule.cy + 18:
+            elif rule.cy + 0.4 < g.cy <= rule.cy + below_lim:
                 below.append(i)
         radical = None
         for i, g in enumerate(glyphs):
-            if g.text == r"\sqrt" and i not in consumed and g.x1 >= rule.x0 - 3 and g.x0 <= rule.x0 + 10 and abs(g.cy - rule.cy) < 20:
+            if g.text == r"\sqrt" and i not in consumed and g.x1 >= rule.x0 - 4 and g.x0 <= rule.x0 + 12 and abs(g.cy - rule.cy) < 22:
                 radical = i
                 break
         if radical is not None and below:
             ids = below + [radical]
-            body = _join([glyphs[i] for i in sorted(below, key=lambda k: glyphs[k].x0)])
+            body = _join(_operators([glyphs[i] for i in sorted(below, key=lambda k: glyphs[k].x0)]))
             box = [glyphs[i] for i in ids]
-            x0, y0, x1, y1 = _span(box)
-            made.append(Glyph(x0, y0, x1, y1, glyphs[radical].size, r"\sqrt{" + body + "}", "math", glyphs[radical].line))
+            x0, _, x1, _ = _span(box)
+            y0, y1 = _baseline(glyphs, ids)
+            made.append(Glyph(x0, y0, x1, y1, 10.9, r"\sqrt{" + body + "}", "math", _line_anchor(glyphs, ids)))
             consumed.update(ids)
             continue
+        # A bar this short is a one-character fraction, not an overline.
+        if rule.w < 7 and not _narrow_fraction(glyphs, above, below):
+            continue
         if above and below:
-            num = _join([glyphs[i] for i in sorted(above, key=lambda k: glyphs[k].x0)])
-            den = _join([glyphs[i] for i in sorted(below, key=lambda k: glyphs[k].x0)])
+            num = _join(_operators([glyphs[i] for i in sorted(above, key=lambda k: glyphs[k].x0)]))
+            den = _join(_operators([glyphs[i] for i in sorted(below, key=lambda k: glyphs[k].x0)]))
             if not num or not den:
                 continue
             if sum(ch.isalpha() for ch in num) > 24 or sum(ch.isalpha() for ch in den) > 24:
                 continue
             box = [glyphs[i] for i in above + below]
-            x0, y0, x1, y1 = _span(box)
-            host = max(above + below, key=lambda i: glyphs[i].w)
-            made.append(Glyph(x0, (y0 + y1) / 2 - 5, x1, (y0 + y1) / 2 + 5, 10.9, r"\frac{" + num + "}{" + den + "}", "math", glyphs[host].line))
+            x0, _, x1, _ = _span(box)
+            y0, y1 = _baseline(glyphs, above + below)
+            made.append(Glyph(x0, y0, x1, y1, 10.9, r"\frac{" + num + "}{" + den + "}", "math", _line_anchor(glyphs, above + below)))
             consumed.update(above)
             consumed.update(below)
             continue
         if below and not above and rule.w < 120:
-            body = _join([glyphs[i] for i in sorted(below, key=lambda k: glyphs[k].x0)])
+            body = _join(_operators([glyphs[i] for i in sorted(below, key=lambda k: glyphs[k].x0)]))
             if not body or sum(ch.isalpha() for ch in body) > 24:
                 continue
             width = max(glyphs[i].x1 for i in below) - min(glyphs[i].x0 for i in below)
@@ -563,13 +776,53 @@ def _baselines(glyphs: list[Glyph]) -> list[list[Glyph]]:
             del lines[i + 1]
             merged = True
             break
+    # A tall parenthesis is drawn as its own line beside the formula it wraps.
+    fences = {"(", ")", "[", "]", r"\{", r"\}", "|", r"\|", r"\langle", r"\rangle"}
+    merged = True
+    while merged and len(lines) > 1:
+        merged = False
+        for i, line in enumerate(lines):
+            solid = [g for g in line if g.kind != "space" and g.text.strip()]
+            if not solid or len(solid) > 2 or any(g.text not in fences for g in solid):
+                continue
+            ax0, ax1 = min(g.x0 for g in line), max(g.x1 for g in line)
+            ay0, ay1 = min(g.y0 for g in line), max(g.y1 for g in line)
+            best: tuple[float, int] | None = None
+            for j, other in enumerate(lines):
+                if j == i:
+                    continue
+                bx0, bx1 = min(g.x0 for g in other), max(g.x1 for g in other)
+                by0, by1 = min(g.y0 for g in other), max(g.y1 for g in other)
+                if _box_gap(ay0, ay1, by0, by1) > 1:
+                    continue
+                gap = _box_gap(ax0, ax1, bx0, bx1)
+                if gap < 18 and (best is None or gap < best[0]):
+                    best = (gap, j)
+            if best is None:
+                continue
+            j = best[1]
+            lines[j] = lines[j] + line
+            del lines[i]
+            merged = True
+            break
     for line in lines:
         line.sort(key=lambda g: (g.x0, g.y0))
     lines.sort(key=lambda ln: min(g.cy for g in ln))
     return lines
 
 
-def _scripts(line: list[Glyph]) -> list[Glyph]:
+def _on_rule(g: Glyph, rules: list[Rule]) -> bool:
+    """A digit stacked on a fraction bar is not a superscript of the letter before it."""
+    for rule in rules:
+        # Only the bar of a one-symbol fraction. A wider bar also covers subscripts.
+        if rule.w < 3.2 or rule.w > 8:
+            continue
+        if rule.x0 - 1 <= g.cx <= rule.x1 + 1 and abs(g.cy - rule.cy) <= 12:
+            return True
+    return False
+
+
+def _scripts(line: list[Glyph], rules: list[Rule] | None = None) -> list[Glyph]:
     """Attach the raised run and the lowered run to the glyph on their left.
 
     An evaluation bar has t=1 above and t=0 below at the same x. Taking the
@@ -582,7 +835,8 @@ def _scripts(line: list[Glyph]) -> list[Glyph]:
     for i, g in enumerate(line):
         if i in used:
             continue
-        if g.kind == "space" or g.kind != "math" or g.size < 9:
+        roman_digit = g.kind == "text" and bool(re.fullmatch(r"[0-9]", g.text or ""))
+        if g.kind == "space" or g.size < 9 or (g.kind != "math" and not roman_digit):
             out.append(g)
             continue
         raised: list[int] = []
@@ -592,6 +846,8 @@ def _scripts(line: list[Glyph]) -> list[Glyph]:
             nxt = line[j]
             if j in used or nxt.kind == "space":
                 continue
+            if rules and _on_rule(nxt, rules):
+                break
             if nxt.size > g.size * 0.92:
                 if nxt.x0 > g.x1 + 1.6:
                     break
@@ -607,9 +863,9 @@ def _scripts(line: list[Glyph]) -> list[Glyph]:
             used.add(j)
         text = g.text
         if raised:
-            text += "^{" + _join(line[j] for j in raised) + "}"
+            text += "^{" + _join(_operators([line[j] for j in raised])) + "}"
         if lowered:
-            text += "_{" + _join(line[j] for j in lowered) + "}"
+            text += "_{" + _join(_operators([line[j] for j in lowered])) + "}"
         out.append(Glyph(g.x0, g.y0, edge, g.y1, g.size, text, g.kind, g.line))
     return out
 
@@ -622,7 +878,7 @@ _MATH_TEXT = set("=+−-·,;:()[]")
 
 
 def _emit(line: list[Glyph], left: float) -> str:
-    line = _scripts(line)
+    line = _operators(_scripts(line))
     chunks: list[str] = []
     run: list[str] = []
     prev: Glyph | None = None
@@ -649,7 +905,13 @@ def _emit(line: list[Glyph], left: float) -> str:
                 chunks.append(" ")
             prev = g
             continue
-        joins_math = g.kind == "math" or (run and g.text in _MATH_TEXT) or (run and g.size < 9 and bool(re.fullmatch(r"[0-9()\[\].,+\-−=]", g.text or "")))
+        nxt_solid = next((line[k] for k in range(index + 1, len(line)) if line[k].kind != "space" and line[k].text.strip()), None)
+        digit = bool(re.fullmatch(r"[0-9]", g.text or ""))
+        # A roman digit printed against a math glyph (2π, 1.4t) belongs in the run.
+        touches_math = digit and gap == "" and (
+            bool(run) or (nxt_solid is not None and nxt_solid.kind == "math" and nxt_solid.x0 - g.x1 <= 2.2)
+        )
+        joins_math = g.kind == "math" or (run and g.text in _MATH_TEXT) or (run and g.size < 9 and bool(re.fullmatch(r"[0-9()\[\].,+\-−=]", g.text or ""))) or touches_math
         if joins_math:
             if gap and run:
                 run.append(" ")
@@ -673,7 +935,9 @@ def _emit(line: list[Glyph], left: float) -> str:
     indented = min(g.x0 for g in line) > left + 28
     if letters <= 1 and "$" in text and (indented or any(tok in text for tok in (_BIG | {r"\frac", r"\sqrt", r"\overline", r"\hat", r"\mathcal"}))):
         body = text.replace("$", "").strip()
-        if body:
+        # A radical or a fence that lost its formula is not a displayed equation.
+        leftover = re.fullmatch(r"[()\[\]√|\s]+|\\sqrt", body or "")
+        if body and not leftover:
             return "$$\n" + body + "\n$$"
     if text.startswith("•"):
         return "- " + text.lstrip("•").strip()
@@ -789,7 +1053,7 @@ def render_page(page: pymupdf.Page, figure_dir: Path | None, page_no: int) -> st
             by_line.setdefault(g.line, []).append(g)
         scripted: list[Glyph] = []
         for group in by_line.values():
-            scripted.extend(_scripts(group))
+            scripted.extend(_scripts(group, col_rules))
         prepared = bind_fractions(scripted, col_rules)
         lines = _baselines(prepared)
         left = min((g.x0 for g in column if g.kind == "text"), default=50)
@@ -896,6 +1160,186 @@ def _pages_of(spec: str, count: int) -> list[int]:
     return pages
 
 
+def _reader_slug(text: str) -> str:
+    """Same id the reader gives a heading: ASCII slug of its visible text."""
+    text = re.sub(r"[^A-Za-z0-9_\s-]", "", text.strip().lower())
+    return re.sub(r"\s+", "-", text)
+
+
+def _heading_targets(out_dir: Path) -> dict[str, tuple[str, str]]:
+    """Map '1.1' to the chapter file and the reader's heading id."""
+    found: dict[str, tuple[str, str]] = {}
+    for path in sorted(out_dir.glob("*.md")):
+        if path.name in {"0. Contents.md", "README.md"}:
+            continue
+        for line in path.read_text(encoding="utf-8").splitlines():
+            if not line.startswith("## "):
+                continue
+            heading = line[3:].strip()
+            # "1.2.2 ..." is a subsection. Only "1.2 " is a contents entry,
+            # and a later subsection must not overwrite it.
+            matched = re.match(r"^(\d+\.\d+|[A-Z]\.\d+)(?=\s)", heading)
+            if matched:
+                found.setdefault(matched.group(1), (path.name, _reader_slug(heading)))
+    return found
+
+
+def _md_link(text: str, filename: str, anchor: str = "") -> str:
+    dest = filename + (f"#{anchor}" if anchor else "")
+    return f"[{text}](<{dest}>)"
+
+
+def _toc_entries(doc: pymupdf.Document, start: int, end: int) -> list[tuple[str, str, str]]:
+    """Entries as (kind, number, title). Titles keep the math the prose pass flattened.
+
+    The contents pages are a two-column list with dot leaders. Reading them as
+    paragraphs glues each page number onto the next title, so this walks the
+    positioned spans instead.
+    """
+    entries: list[tuple[str, str, str]] = []
+    for number in range(start, end + 1):
+        page = doc[number - 1]
+        raw: list[dict] = []
+        for block in page.get_text("dict")["blocks"]:
+            if block.get("type") != 0:
+                continue
+            for line in block["lines"]:
+                raw.extend(line["spans"])
+        raw.sort(key=lambda span: (span["bbox"][1], span["bbox"][0]))
+        clusters: list[dict] = []
+        for span in raw:
+            y = span["bbox"][1]
+            if y < 48 or span["size"] > 16:
+                continue
+            if clusters and y - clusters[-1]["y"] <= 7:
+                clusters[-1]["spans"].append(span)
+                if span["size"] >= 10:
+                    clusters[-1]["y"] = y
+            else:
+                clusters.append({"y": y, "spans": [span]})
+        for cluster in clusters:
+            title = _toc_title(cluster["spans"])
+            if not title or title.lower() == "contents":
+                continue
+            section = re.match(r"^(\d+\.\d+|[A-Z]\.\d+)\s+(.*)$", title)
+            if section:
+                entries.append(("section", section.group(1), section.group(2).strip()))
+                continue
+            chapter = re.match(r"^(Index|[A-Z]|\d+)\b\s*(.*)$", title)
+            if chapter:
+                entries.append(("chapter", chapter.group(1), chapter.group(2).strip()))
+    return entries
+
+
+def _toc_title(spans: list[dict]) -> str:
+    spans = sorted(spans, key=lambda span: span["bbox"][0])
+    tokens: list[tuple[str, str, float]] = []
+    prev_x1: float | None = None
+    for span in spans:
+        if span["bbox"][0] > 510:
+            continue
+        raw = re.sub(r"(?:\s*\.){2,}.*$", "", span["text"])
+        raw = re.sub(r"\s+\.\s*$", "", raw)
+        leading = bool(raw[:1].isspace())
+        text = raw.strip()
+        if not text or re.fullmatch(r"[.\s]+", text):
+            continue
+        gap = 0.0 if prev_x1 is None else span["bbox"][0] - prev_x1
+        if leading:
+            gap = max(gap, 2.0)
+        font = span["font"]
+        if span["size"] < 9.5:
+            if re.fullmatch(r"\d", text) and tokens and tokens[-1][0] in {"mi", "btext"} and tokens[-1][1] in {"L", "R"}:
+                tokens.append(("sup", text, gap))
+                prev_x1 = span["bbox"][2]
+            continue
+        if font.startswith("CMMIB"):
+            kind = "mb"
+        elif font.startswith("CMMI"):
+            kind = "mi"
+        elif font.startswith("CMBX"):
+            kind = "btext"
+        elif font.startswith("CMBSY"):
+            kind = "sym"
+        else:
+            kind = "text"
+        tokens.append((kind, text, gap))
+        prev_x1 = span["bbox"][2]
+    parts: list[str] = []
+    index = 0
+    while index < len(tokens):
+        kind, text, gap = tokens[index]
+        nxt = tokens[index + 1] if index + 1 < len(tokens) else None
+        space = " " if gap > 1.2 and parts else ""
+        if kind == "mi" and text == "L" and nxt and nxt[0] == "sup":
+            parts.append(f"{space}$L^{{{nxt[1]}}}$")
+            index += 2
+            continue
+        if kind == "btext" and text == "R" and nxt and nxt[0] == "sup":
+            parts.append(space + r"$\mathbf{R}^{" + nxt[1] + "}$")
+            index += 2
+            continue
+        if kind == "btext" and text == "1" and nxt and nxt[0] == "mb" and nxt[1] == "/x":
+            parts.append(space + r"$\mathbf{1/x}$")
+            index += 2
+            continue
+        if kind == "mb" and re.fullmatch(r"[A-Za-z]", text):
+            parts.append(space + r"$\mathbf{" + text + "}$")
+        elif kind == "mi" and text == "δ":
+            parts.append(space + r"$\delta$")
+        elif kind == "mi" and text == ",":
+            parts.append(",")
+        elif kind == "sym":
+            parts.append(r" $\ast$ ")
+        elif kind == "btext" and text == "sinc":
+            parts.append(space + r"$\operatorname{sinc}$")
+        else:
+            parts.append(space + text)
+        index += 1
+    title = re.sub(r" {2,}", " ", "".join(parts))
+    title = re.sub(r" +([,.;:?])", r"\1", title).strip().rstrip(".")
+    # The superscript of L^2 is its own span, so the ([0, 1]) that follows
+    # would otherwise sit outside the math.
+    return title.replace(r"$L^{2}$([0, 1])", r"$L^{2}([0, 1])$")
+
+
+def _chapter_filename_for(number: str, title: str) -> str:
+    if number == "Index":
+        return "Index.md"
+    plain = re.sub(r"\$\\mathbf\{([^}]*)\}\$", r"\1", title)
+    plain = re.sub(r"\$\\operatorname\{([^}]*)\}\$", r"\1", plain)
+    plain = plain.replace("$", "").replace("\\", "")
+    plain = re.sub(r"\s+", " ", plain).strip()
+    return f"{number}. {plain}.md"
+
+
+def render_contents(doc: pymupdf.Document, start: int, end: int, out_dir: Path) -> str:
+    targets = _heading_targets(out_dir)
+    lines = ["# Contents", ""]
+    current_file = ""
+    for kind, number, title in _toc_entries(doc, start, end):
+        if kind == "chapter":
+            if lines and lines[-1].startswith("- "):
+                lines.append("")
+            filename = _chapter_filename_for(number, title)
+            if not (out_dir / filename).exists():
+                match = next((path.name for path in out_dir.glob("*.md") if path.name.startswith(f"{number}. ")), "")
+                if match:
+                    filename = match
+            current_file = filename
+            label = number if number == "Index" or not title else f"{number} {title}"
+            lines.append(f"## {_md_link(label, filename)}")
+            lines.append("")
+            continue
+        filename, anchor = targets.get(number, (current_file, ""))
+        if filename:
+            lines.append(f"- {_md_link(f'{number} {title}', filename, anchor)}")
+        else:
+            lines.append(f"- {number} {title}")
+    text = "\n".join(lines).rstrip() + "\n"
+    return re.sub(r"\n{3,}", "\n\n", text)
+
+
 def convert(pdf: Path, out_dir: Path, pages: list[int] | None) -> list[Path]:
     doc = pymupdf.open(pdf)
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -912,8 +1356,14 @@ def convert(pdf: Path, out_dir: Path, pages: list[int] | None) -> list[Path]:
     if not breaks:
         raise SystemExit("no chapter breaks found")
     written = []
+    contents_job: tuple[int, int] | None = None
     for number, (title, start) in enumerate(breaks):
         end = breaks[number + 1][1] - 1 if number + 1 < len(breaks) else doc.page_count
+        # The contents list is rebuilt after the chapters, so its links can
+        # point at the heading ids those files actually got.
+        if title == "Contents":
+            contents_job = (start, end)
+            continue
         print(f"{title} (pdf {start}-{end})", file=sys.stderr)
         parts = []
         for n in range(start, end + 1):
@@ -930,6 +1380,12 @@ def convert(pdf: Path, out_dir: Path, pages: list[int] | None) -> list[Path]:
         path = out_dir / chapter_filename(title)
         path.write_text(body + "\n", encoding="utf-8")
         written.append(path)
+    if contents_job:
+        start, end = contents_job
+        print(f"Contents (pdf {start}-{end})", file=sys.stderr)
+        path = out_dir / "0. Contents.md"
+        path.write_text(render_contents(doc, start, end, out_dir), encoding="utf-8")
+        written.insert(0, path)
     return written
 
 

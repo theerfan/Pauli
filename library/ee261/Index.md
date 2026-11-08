@@ -538,7 +538,7 @@ polar coordinates, 354
 
 Fourier transform of
 
-1$/x,$ 188
+$1/x,$ 188
 
 delta, 171
 
@@ -708,7 +708,7 @@ Cauchy principal value integral, 314
 
 inverse, 314
 
-of sinc, 318
+of $\operatorname{sinc}(, 318)$
 
 histogram, 119
 
