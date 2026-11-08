@@ -1,0 +1,1449 @@
+# Index
+
+$n-$dim Fourier series, 359, 361
+
+coeﬃcients, 361
+
+$n-$dim Fourier transform, 333
+
+convolution theorem, 351
+
+deﬁnition, 334
+
+general stretch theorem, 348
+
+inverse, 334
+
+linearity, 345
+
+notation, 333
+
+polar coordinates, 354
+
+properties, 345
+
+rotation theorem, 349
+
+shift and stretch theorem, 350
+
+shift theorem, 345
+
+spectrum, 338
+
+stretch theorem, 347
+
+$n-$dim Fourier transform of
+
+delta function, 353
+
+radial function, 354
+
+separable functions, 341
+
+$n-$dim Schwarz functions, 352
+
+$n-$dim complex exponential, 360
+
+$n-$dim complex exponentials, 335
+
+$n-$dim convolution, 351
+
+$n-$dim functions
+
+circ, 355
+
+delta, 352
+
+Gaussian, 344
+
+jinc, 356
+
+parallelogram rect, 350
+
+rect, 342
+
+$n-$dim periodic functions, 359
+
+$n-$dim stretch theorem derivation, 357
+
+$n-$dim tempered distributions, 352
+
+AC component, 9
+
+Ahlfors Lars, 148
+
+alias, 239
+
+aliasing, 238, 245
+
+analytic signal, 316
+
+antenna radiation patterns, 201
+
+artifacts, 395
+
+attenuation coeﬃcient, 385
+
+averaging and least squares, 320
+
+BachJ.S., 9
+
+bandlimited function on R2, 380
+
+bandwidth, 13, 224
+
+basis
+
+dual, 376
+
+natural, 28
+
+orthonormal, 28
+
+basis of C$N$
+
+complex exponentials, 265
+
+shifted delta, 263
+
+bed of nails, 370
+
+bell-shaped curve, 99
+
+Bessel function of the ﬁrst kind
+
+ﬁrst-order, 356
+
+zero-order, 355
+
+bit reversal, 289
+
+via permutation matrices, 289
+
+Bracewell, 189, 201
+
+Brownian motion, 362
+
+butterﬂy diagram, 287
+
+buzz, 47
+
+Cantor G., 2
+
+CAT, see Computer Assisted Tomography
+
+Cauchy-Schwarz inequality, 33
+
+and matched ﬁlters, 310
+
+causal function or signal, 312
+
+causality, 311
+
+and linear systems, 311
+
+and linear time invariant systems, 311
+
+and physical realizability, 312
+
+Central Limit Theorem, 116, 118, 129
+
+Central Slice Theorem, see Projection-Slice Theorem
+
+change of variables formula
+
+for multiple integrals, 357
+
+circ function, 355
+
+circularly (radially) symmetric function, 354
+
+clarity of glass, 394
+
+Clark Latimer, 45
+
+compact support, 225
+
+complex exponentials
+
+$n-$dim, 335
+
+eigenfunctions of LTI systems, 307
+
+operator decomposition, 308
+
+complex inner product, 30, 36
+
+Computational Frameworks for the Fast Fourier Trans-
+
+form, 285
+
+Computer Assisted Tomography, 395
+
+continuity of Fourier transform, 136
+
+continuous Fourier transform
+
+of sampled signal, 251
+
+convergence
+
+Fourier series, 50
+
+of power integral, 367
+
+pointwise, 53
+
+pointwise vs. uniform, 58
+
+uniform, 53
+
+convergence rate
+
+Fourier series, 53
+
+convolution, 43, 91
+
+and probability density functions, 125
+
+as a smoothing operation, 116, 196
+
+as smoothing and averaging, 96
+
+deﬁnition, 93
+
+derivative theorem, 196
+
+Dirichlet kernel, 60
+
+discrete, 273
+
+in frequency domain, 94
+
+interpretation, 95
+
+properties, 97
+
+theorem, 93
+
+visualization, 95
+
+convolution integral, 43
+
+Cooley J., 249
+
+crystal lattice dual, 378
+
+crystals, 378
+
+cumulative density function (cdf), 121
+
+cumulative probability, 121
+
+cycle, 5
+
+DC component, 9
+
+in discrete case, 257
+
+deconvolution, 98
+
+delta
+
+$n-$dim, 352
+
+along the line, 389
+
+approximating function sequences, 166
+
+as a tempered distribution, 163
+
+convolution property, 193
+
+derivative, 178
+
+discrete, see discrete delta
+
+Fourier transform, 171
+
+function, 98, 153
+
+function origins, 156
+
+Kronecker, 28
+
+product with a function, 185
+
+scaling, 191
+
+sifting property, 193
+
+derivative of
+
+delta function, 178
+
+signum (sign) function, 177
+
+unit ramp function, 177
+
+unit step function, 176
+
+DFT, see discrete Fourier transform
+
+diﬀerential calculus, 175
+
+diﬀerential equations
+
+solution via Fourier transform, 106
+
+diﬀerential operator, 106
+
+diﬀraction, 199
+
+by a single slit, 204
+
+by two point sources, 206
+
+diﬀraction gratings, 209
+
+diﬀusion, 39
+
+submarine telegraphy, 45, 109
+
+digital ﬁlters, 319
+
+analysis in the frequency domain, 323
+
+computation in the frequency domain, 325
+
+digital watermarking, 339
+
+Dirac comb, 210
+
+Dirac P., 139, 156
+
+Dirichlet kernel, 49, 59
+
+discrete delta, 263
+
+properties, 274
+
+discrete ﬁlters
+
+band-pass, 327
+
+low-pass, 325
+
+discrete Fourier transform, 249, 252
+
+alternative deﬁnition, 262, 275
+
+convolution, 273
+
+duality relations, 268
+
+general properties, 259, 271
+
+matrix form, 255
+
+modulation theorem, 272
+
+notation, 252
+
+of reversed signals, 266
+
+Parseval’s identity, 271
+
+periodicity, 260
+
+shift theorem, 272
+
+vector form, 255
+
+discrete Fourier transform of
+
+discrete rect, 330
+
+shifted deltas, 264
+
+vector complex exponential, 265
+
+discrete linear systems examples
+
+matrix multiplication, 296
+
+discrete signals
+
+periodic assumption, 261
+
+periodicity, 269
+
+disrete convolution
+
+and random variable probability, 126
+
+distribution
+
+normal (or Gaussian), 118, 124
+
+uniform, 123
+
+distributions, 135, 139, 153
+
+as limits, 153
+
+as linear functionals, 157
+
+convolution, 193, 195
+
+derivative, 176
+
+duality relations, 183
+
+evenness and oddness, 184
+
+other classes, 164
+
+physical analogy, 165
+
+product with a function, 185
+
+reversal, 182
+
+tempered, 139
+
+distributions and Fourier transform
+
+convolution theorem, 192
+
+derivative theorem, 187
+
+shift theorem, 189
+
+stretch theorem, 191
+
+dual (reciprocal) basis, 376
+
+dual lattice, 375
+
+electron density distribution, 210
+
+electrostatic capacity per unit length, 45
+
+energy spectrum, 13, 73
+
+Euler, 99
+
+existence of Fourier transform, 135
+
+exponential decay
+
+one-sided, 77
+
+two-sided, 88
+
+far ﬁeld diﬀraction, 203
+
+Faraday Michael, 45
+
+fast Fourier transform, 277
+
+algorithm, 277
+
+and Gauss, 258
+
+butterﬂy diagram, 287
+
+calculation, 280
+
+computational complexity, 286
+
+description, 281
+
+divide and conquer approach, 284
+
+sorting indices, 287
+
+via matrix factorization, 285
+
+Feynman, 199
+
+FFT, see fast Fourier transform
+
+ﬁltering, 102
+
+ﬁlters, 102
+
+bandpass, 104
+
+discrete, 325
+
+highpass, 105
+
+lowpass, 103
+
+notch, 106
+
+ﬁnite sampling theorem, 232
+
+formula
+
+integration by parts, 51
+
+Fourier, 39
+
+analysis, 1
+
+coeﬃcients, 11
+
+ﬁnite series, 12
+
+inﬁnite series, 12
+
+Fourier coeﬃcients
+
+as Fourier transform, 72
+
+size, 50
+
+Fourier inversion theorem, 72
+
+Fourier optics, 199
+
+Fourier pair, 74
+
+Fourier reconstruction
+
+model brain, 399
+
+Fourier transform, 65
+
+continuity, 136
+
+deﬁnition, 71
+
+duality, 79
+
+existance, 135
+
+magnitude and $L^{1}$ norm, 138, 141
+
+motivation, 68
+
+of a Fourier series, 220
+
+of reversed signals, 81
+
+polar coordinates, 354
+
+Fourier transform of
+
+1$/x,$ 188
+
+delta, 171
+
+shah function, 214
+
+shifted delta, 173
+
+signum, 188
+
+sine and cosine, 174
+
+unit step, 188
+
+Fourier transform properties
+
+derivative formula, 106, 142
+
+duality, 79
+
+even and odd symmetry, 82
+
+general shift and stretch theorem, 87
+
+linearity, 83
+
+shift theorem, 83
+
+stretch (similarity) theorem, 84
+
+Fraunhofer approximation (diﬀraction), 201
+
+Fraunhofer diﬀraction, 202
+
+frequencies
+
+positive and negative, 256, 262
+
+frequency domain
+
+polar coordinate grid, 398
+
+frequency response, 307
+
+Friedrich and Kniping, 209
+
+function
+
+absolutely integrable, 36
+
+compact support, 164
+
+global properties, 53
+
+local properties, 53
+
+orthogonal projection, 38
+
+rapidly decreasing, 140
+
+scaling, 78
+
+Schwartz class, 143
+
+smoothness and decay, 140
+
+square integrable, 36
+
+functional analysis, 293
+
+fundamental solution
+
+heat ﬂow on a circle, 43
+
+Gauss, 99, 249
+
+calculating orbit of an asteroid, 258
+
+Gaussian function, 99, 117
+
+general form, 100
+
+heat kernel for inﬁnite rod, 108
+
+its Fourier transform, 100
+
+periodization, 115
+
+Gaussian integral evaluation, 101
+
+generalized Fourier transform, 179
+
+generalized functions, 139
+
+generating function, 365
+
+Gibbs J. W., 57
+
+Gibbs phenomenon, 57
+
+square wave, 62
+
+Goodman J. W., 199
+
+Gray and Goodman, 189
+
+Green’s function
+
+for inﬁnite rod heat ﬂow, 109
+
+heat ﬂow on a circle, 43
+
+Hankel transform, 355
+
+harmonic oscillator, 7
+
+harmonics, 7, 21
+
+amplitude and phase, 9
+
+energy, 13
+
+heat, 39
+
+ﬂow, 39
+
+heat equation, 40
+
+inﬁnite rod, 107, 156
+
+heat ﬂow
+
+on a circle, 41, 113
+
+on an inﬁnite rod, 107
+
+spot on earth, 43
+
+heat kernel
+
+for inﬁnite rod heat ﬂow, 109
+
+Heaviside, 156
+
+Heaviside function, 176
+
+Heaviside Oliver, 46, 139, 176
+
+Heisenberg uncertainty principle, 132
+
+Heisenberg Werner, 47
+
+Heisenberg’s inequality, 132
+
+Helmholtz equation, 201
+
+high-pass ﬁlter, 198
+
+Hilbert transform, 178, 312
+
+and analytic signals, 316
+
+as an LTI system, 315
+
+as an operator, 313
+
+Cauchy principal value integral, 314
+
+inverse, 314
+
+of sinc, 318
+
+histogram, 119
+
+Huygens Christiaan, 200
+
+Huygens’ principle, 202
+
+identity
+
+inﬁnite sum of Gaussians, 114
+
+IDFT, see inverse discrete Fourier transform
+
+improper integral, 180
+
+impulse function, 98, 153
+
+impulse response, 102, 198, 300
+
+heat ﬂow on a circle, 43
+
+impulse train, 49
+
+independence, 124
+
+independent periodicity, 359
+
+inner product
+
+complex-valued functions in $L^{2},$ 30
+
+geometric formula, 35
+
+in $n-$dim, 360
+
+real-valued functions in $L^{2},$ 29
+
+vectors in R$n,$ 27
+
+instantaneous frequency, 318
+
+integer lattice, 361, 370
+
+self-dual, 375
+
+integral
+
+convergence, 149
+
+integration, 146
+
+contour and the residue theorem, 148
+
+positive functions, 146
+
+interpolation
+
+general form, 228
+
+Lagrange, 229
+
+inverse $n-$dim Fourier transform
+
+deﬁnition, 334
+
+inverse discrete Fourier transform, 268
+
+matrix form, 269
+
+inverse Fourier transform
+
+deﬁnition, 72
+
+motivation, 72
+
+inverse Hilbert transform, 314
+
+Jacobi theta function, 114
+
+Jacobi’s identity, 114
+
+jinc function, 356
+
+Joy of Convolution, 97
+
+K¨orner T., 148
+
+Kac Mark, 119
+
+kernel
+
+Dirichlet, 49, 59
+
+Kronecker delta, 28
+
+Lagrange, 229
+
+Lagrange interpolation polynomial, 230
+
+Laplacian, 201
+
+lattice, 217, 370
+
+and shah, 373
+
+area, 372
+
+dual, 375
+
+fundamental parallelogram, 372
+
+general, 372
+
+reciprocal, 375
+
+unit cell, 372
+
+lattice sampling formula, 382
+
+Law of squares, 46
+
+least squares curve ﬁtting, 258
+
+Lebesgue, 23
+
+integral, 138
+
+Lebesgue dominated convergence theorem, 149
+
+Lebesgue integral, 148
+
+Lectures on Physics, 199
+
+light
+
+linearly polarized, 200
+
+monochromatic, 200
+
+point source, 207
+
+waves, 201
+
+limits of distributions, 166
+
+line
+
+($ρ,φ)$ parametrization, 387
+
+($m,b)$ parametrization, 387
+
+parametric description, 387
+
+line impulse, 389
+
+linear change of variables, 348
+
+linear combination, 294
+
+linear system
+
+additivity, 294
+
+homogeneity, 294
+
+linear systems, 293
+
+and causality, 311
+
+and convolution, 297
+
+and translation, 298
+
+composition or cascade, 299
+
+impulse response, 300
+
+kernel, 296
+
+superposition theorem, 300
+
+via integration against a kernel, 296
+
+linear systems examples
+
+integration, 296
+
+multiplication, 295
+
+periodization, 298
+
+sampling, 295
+
+switching, 295
+
+linear time invariant systems
+
+and causality, 311
+
+and Fourier transform, 307
+
+deﬁnition, 302
+
+superposition theorem, 303
+
+transfer function, 307
+
+Lippman G., 118
+
+Lord Kelvin, 45
+
+Lorenz proﬁle curve, 78
+
+Los Alamos, 47
+
+LTIS, see linear time invariant systems
+
+Markov process, 362
+
+matched ﬁlter theorem, 310
+
+matched ﬁlters, 309
+
+matrix
+
+circulant, 298
+
+Hermitian, 270
+
+orthogonal, 270, 349
+
+rotation, 349
+
+symmetric, 270
+
+Toeplitz, 298
+
+unitary, 270
+
+Maxwell’s theory of electromagnetism, 156
+
+measure, 148
+
+theory, 148
+
+medical imaging, 384
+
+numerical computations, 397
+
+reconstruction, 396
+
+Michael Frayn’s play Copenhagen, 47
+
+Michelson and Stratton’s device, 57
+
+minimum sampling rate, 227
+
+module, 372
+
+musical
+
+pitch, 8
+
+tuning, 8
+
+musical tone, 47
+
+narrowband signal, 317
+
+Newton, 200
+
+Newton’s law of cooling, 40
+
+nonrecursive ﬁlter, 321
+
+norm
+
+$L^{1},$ 138
+
+$L^{2}$ (square), 23
+
+normal approximation or distribution, 118
+
+notch ﬁlter, 199
+
+Nyquist frequency, 227
+
+Nyquist Harry, 227
+
+one-sided exponential decay, 77
+
+operators, 153
+
+ordinary diﬀerential equations
+
+solution, 107
+
+orthogonality, 26
+
+orthonormal basis, 28
+
+P´olya G., 364
+
+Parseval’s theorem, 24
+
+for Fourier transforms, 73
+
+period
+
+fundamental, 4
+
+periodic distributions, 218
+
+and Fourier series, 217
+
+periodic functions, 2, 4
+
+summation of, 5
+
+periodicity
+
+and integer lattice, 371
+
+independent, 359
+
+spatial, 2
+
+temporal, 2
+
+periodizing sinc functions, 235
+
+permutation matrix, 282
+
+perpendicularity, 26
+
+plane wave ﬁeld, 202
+
+Poisson summation formula, 215
+
+$n-$dim case, 383
+
+polar coordinates Fourier transform, 354
+
+power integral convergence, 367
+
+power spectrum, 13, 73
+
+principal value distribution, 180
+
+principle of superposition, 294
+
+principle value integrals, 137
+
+probability, 120, 121
+
+generating function, 365
+
+probability density function (pdf), 119
+
+probability distribution, 119
+
+Projection-Slice Theorem, 395
+
+projections, 390
+
+Pythagorean theorem, 26
+
+quadrature function, 315
+
+quantum mechanics
+
+inequalities, 132
+
+momentum, 134
+
+observable, 134
+
+particle moving in one dimension, 134
+
+position of particle, 134
+
+radial function, 354
+
+Radon Johann, 388
+
+Radon transform, 387, 388
+
+evenness, 393
+
+linearity, 393
+
+properties, 393
+
+shift, 393
+
+Radon transform of
+
+circ, 391
+
+Gaussian, 392
+
+random variable
+
+continuous, 119
+
+discrete, 119
+
+independent and identically distributed (iid), 128
+
+mean (or average), 121
+
+standrad deviation, 121
+
+variance, 121
+
+random variables, 118
+
+random vector, 363
+
+random walk, 362
+
+recurrent, 365
+
+transient, 365
+
+randomw walk
+
+theorem, 364
+
+rapidly decreasing functions, 140, 142
+
+dual space, 158
+
+Fourier inversion, 144
+
+Fourier transform, 143
+
+Parseval identity, 145
+
+ratio of sine functions, 236
+
+Rayleigh’s identity, 24, 32
+
+reciprocal lattice, 375
+
+reciprocal or dual lattice , 217
+
+reciprocal relationship
+
+spatial and frequency domain, 336
+
+reciprocity
+
+time and frequency domain, 15
+
+rect function, 65
+
+recursive ﬁlter, 321
+
+resistance per unit length, 45
+
+reversed signal, 81
+
+discrete case, 266
+
+Fourier transform, 81
+
+Riemann integral, 25
+
+Riemann-Lebesgue lemma, 139, 150
+
+Riesz-Fischer theorem, 24
+
+Roentgen William, 209
+
+running average, 321
+
+sampling, 209
+
+endpoint problem, 243
+
+for bandlimited periodic signal, 230
+
+in frequency domain, 251
+
+sines and bandlimited signals, 222
+
+with shah function, 213
+
+sampling and interpolation, 222
+
+bandlimited signals, 225
+
+sampling on a lattice, 380
+
+sampling theorem, 226
+
+Savage Sam, 118
+
+sawtooth signal, 54
+
+scaling operator, 191
+
+Schwartz kernel, see impulse response
+
+Schwartz Laurent, 139, 143
+
+self-dual lattice, 375
+
+separable functions, 341
+
+separation of variables method
+
+in partial diﬀerential equations, 341
+
+Serber Robert, 47
+
+shah
+
+distribution, 210
+
+Fourier series, 219
+
+Fourier transform, 214
+
+function, 210
+
+scaling identity, 214
+
+Shannon C., 140, 227
+
+shift (delay) operator, 189
+
+shifted delta
+
+Fourier transform, 173
+
+sifting property of delta, 193
+
+signal
+
+bandlimited, 13, 71, 73, 224
+
+bandwidth, 13, 224
+
+reversal, 81
+
+signal conversion
+
+continuous to discrete, 249
+
+signal-to-noise ratio, 310
+
+signum (sign) function, 177
+
+similarity, 84
+
+sinc function, 69
+
+as a convolution identity, 225
+
+orthonormal basis, 228
+
+sinusoid, 7
+
+Smith Julius, 20
+
+smooth windows, 150
+
+SNR, see signal-to-noise ratio
+
+Sommerfeld, 199
+
+sorting algorithm
+
+merge and sort, 277
+
+spatial variable, 333
+
+spectral power density, 73
+
+spectrum, 13, 73
+
+analyzer, 13
+
+continuous, 71
+
+musical instruments, 20
+
+unbounded, 224
+
+square integrable functions, 21
+
+square sampling formula, 381
+
+Stokes G., 45
+
+superposition, 294
+
+principle, 294
+
+superposition theorem
+
+for discrete linear systems, 302
+
+for discrete linear time invariant systems, 304
+
+for linear systems, 300
+
+for linear time invariant systems, 303
+
+support of a function, 164, 224
+
+system, 293
+
+Tekalp A. M., 217
+
+telegraph equation, 46
+
+temperature, 40
+
+tempered distribution
+
+Fourier inversion, 171
+
+Fourier transform, 169
+
+inverse Fourier transform, 170
+
+tempered distributions, 153, 157
+
+continuity, 158
+
+deﬁned by function, 159
+
+dual space, 158
+
+linearity, 158
+
+regularization, 197
+
+tensor products, 341
+
+test functions
+
+class, 139
+
+thermal capacity, 40
+
+thermal resistance, 40
+
+Thomson William (Lord Kelvin), 45, 99, 109
+
+timelimited vs. bandlimited, 225, 233
+
+Toeplitz Otto, 298
+
+tomography, 386, 395
+
+top-hat function, 66
+
+transfer function, 102
+
+transfer function, 198
+
+transfer function of linear time invariant system, 307
+
+trapezoidal rule approximation, 397
+
+triangle function, 75
+
+triangle inequality, 35
+
+Tukey John, 26, 249
+
+tuning
+
+equal tempered scale, 8
+
+natural, 8
+
+Two Slits experiments, 200
+
+two-dimensional shah, 370
+
+two-sided exponential decay, 88
+
+unit ramp function, 177
+
+unit step function, 176
+
+Van Loan Charles, 285
+
+vector, 26
+
+inner (dot) product, 27
+
+norm, 26
+
+projection, 28
+
+vector complex exponential, 253
+
+vector complex exponentials
+
+eigenvectors, 309
+
+geometric series, 328
+
+orthogonality, 264
+
+von Laue Max, 209
+
+von Neumann John, 34
+
+Wandell Brian, 4
+
+wave equation, 201
+
+wavefront, 201
+
+Whitehouse Edward, 46
+
+Whittaker E., 227
+
+windowing, 145
+
+X-ray diﬀraction, 378
+
+X-rays, 209
+
+Young Thomas, 200
+
+Young’s experiment, 205
+
+zero padding, 290
+
+zero phase, 336
